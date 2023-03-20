@@ -62,73 +62,66 @@ def show_pdf(url):
 def remove_pdf():
     st.markdown("", unsafe_allow_html=True)
 
-st.title("Blockchain Security Audit Search")
-st.write("Search for security audits hosted on https://safefiles.defiyield.info/safe/files/audit/pdf/")
+def main():
+    st.title("Blockchain Security Audit Search")
+    st.write("Search for security audits hosted on https://safefiles.defiyield.info/safe/files/audit/pdf/")
 
-query = st.text_input("search:")
+    query = st.text_input("search:")
 
-saved_audits = st.sidebar.title("Saved Audits")
-saved_audits_list = st.sidebar.empty()
+    saved_audits = st.sidebar.title("Saved Audits")
+    saved_audits_list = st.sidebar.empty()
 
-# Load saved audits from file
-if "saved_audits" not in st.session_state:
-    st.session_state.saved_audits = load_saved_audits()
+    # Load saved audits from file
+    if "saved_audits" not in st.session_state:
+        st.session_state.saved_audits = load_saved_audits()
 
-if query:
-    audit_links = scrape_audit_links()
-    search_results = search_audit_links(audit_links, query)
+    if query:
+        audit_links = scrape_audit_links()
+        search_results = search_audit_links(audit_links, query)
 
-    if search_results:
-        st.write(f"Found {len(search_results)} audit(s) matching '{query}':")
+        if search_results:
+            st.write(f"Found {len(search_results)} audit(s) matching '{query}':")
 
-        # Pagination for search results
-        total_pages = (len(search_results) - 1) // RESULTS_PER_PAGE + 1
-        page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
-        start_index = (page - 1) * RESULTS_PER_PAGE
-        end_index = min(start_index + RESULTS_PER_PAGE, len(search_results))
+            # Pagination for search results
+            total_pages = (len(search_results) - 1) // RESULTS_PER_PAGE + 1
+            page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
+            start_index = (page - 1) * RESULTS_PER_PAGE
+            end_index = min(start_index + RESULTS_PER_PAGE, len(search_results))
 
-        for result in search_results[start_index:end_index]:
-            st.write(f"{result['title']}")
-            col2, col3, col4 = st.columns([1, 1, 1])
-            with col2:
-                if st.button(f"Open PDF", key=f"open_{result['title']}"):
-                    show_pdf(result['url'])
-            with col3:
-                if st.button(f"Close PDF", key=f"close_{result['title']}"):
-                    remove_pdf()
-            with col4:
-                if st.button(f"Save to sidebar", key=f"save_{result['title']}"):
-                    st.session_state.saved_audits.append(result)
-                    save_saved_audits(st.session_state.saved_audits)
+            for result in search_results[start_index:end_index]:
+                col2, col3 = st.columns([1, 1])
+                with col2:
+                    st.write(f"[{result['title']}]({result['url']})", unsafe_allow_html=True)
+                with col3:
+                    if st.button(f"Save to sidebar", key=f"save_{result['title']}"):
+                        st.session_state.saved_audits.append(result)
+                        save_saved_audits(st.session_state.saved_audits)
+
+        else:
+            st.write(f"No audits found matching '{query}'.")
+
+    # Display saved audits in the sidebar
+    if st.session_state.saved_audits:
+        # Pagination for saved audits
+        total_saved_pages = (len(st.session_state.saved_audits) - 1) // RESULTS_PER_PAGE + 1
+        saved_page = st.sidebar.number_input("Page", min_value=1, max_value=total_saved_pages, value=1, step=1)
+        start_saved_index = (saved_page - 1) * RESULTS_PER_PAGE
+        end_saved_index = min(start_saved_index + RESULTS_PER_PAGE, len(st.session_state.saved_audits))
+
+        for index in range(start_saved_index, end_saved_index):
+            saved_audit = st.session_state.saved_audits[index]
+            with st.sidebar.container():
+                col1, col2 = st.sidebar.columns([1, 1])
+                with col1:
+                    st.write(f"[{saved_audit['title']}]({saved_audit['url']})", unsafe_allow_html=True)
+                with col2:
+                    remove_button = st.button("Remove", key=f"remove_{saved_audit['title']}")
+
+            if remove_button:
+                del st.session_state.saved_audits[index]
+                save_saved_audits(st.session_state.saved_audits)
+                saved_audits_list.empty()
 
 
-
-    else:
-        st.write(f"No audits found matching '{query}'.")
-
-# Display saved audits in the sidebar
-if st.session_state.saved_audits:
-    # Pagination for saved audits
-    total_saved_pages = (len(st.session_state.saved_audits) - 1) // RESULTS_PER_PAGE + 1
-    saved_page = st.sidebar.number_input("Page", min_value=1, max_value=total_saved_pages, value=1, step=1)
-    start_saved_index = (saved_page - 1) * RESULTS_PER_PAGE
-    end_saved_index = min(start_saved_index + RESULTS_PER_PAGE, len(st.session_state.saved_audits))
-
-    for index in range(start_saved_index, end_saved_index):
-        saved_audit = st.session_state.saved_audits[index]
-        with st.sidebar.container():
-            col1, col2, col3 = st.sidebar.columns([1,1, 1])
-            st.write(f"{saved_audit['title']}")  # Remove link from title
-            with col1:
-                if st.button(f"Open PDF", key=f"saved_open_{saved_audit['title']}"):
-                    show_pdf(saved_audit['url'])
-            with col2:
-                if st.button(f"Close PDF", key=f"close_open_{saved_audit['title']}"):
-                    remove_pdf()
-            with col3:
-                remove_button = st.button("Remove", key=f"remove_{saved_audit['title']}")
-
-        if remove_button:
-            del st.session_state.saved_audits[index]
-            save_saved_audits(st.session_state.saved_audits)
-            saved_audits_list.empty()
+if __name__ == "__main__":
+    main()
