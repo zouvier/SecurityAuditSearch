@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import json
 import base64
 
+
 BASE_URL = "https://safefiles.defiyield.info/safe/files/audit/pdf/"
 SAVED_AUDITS_FILE = "../saved_audits.json"
 RESULTS_PER_PAGE = 10
@@ -55,7 +56,7 @@ def save_saved_audits(saved_audits):
 def show_pdf(url):
     response = requests.get(url)
     base64_pdf = base64.b64encode(response.content).decode('utf-8')
-    pdf_display = f'<div style="text-align: center;"><iframe src="data:application/pdf;base64,{base64_pdf}" width="800" height="800" type="application/pdf" style="margin:auto;"></iframe></div>'
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="800" height="800" type="application/pdf"></iframe>'
     st.markdown(pdf_display, unsafe_allow_html=True)
 
 def remove_pdf():
