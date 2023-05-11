@@ -84,7 +84,7 @@ def main():
 
             # Pagination for search results
             total_pages = (len(search_results) - 1) // RESULTS_PER_PAGE + 1
-            page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
+            page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1, key="search_engine")
             start_index = (page - 1) * RESULTS_PER_PAGE
             end_index = min(start_index + RESULTS_PER_PAGE, len(search_results))
 
